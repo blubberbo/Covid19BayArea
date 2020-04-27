@@ -85,12 +85,13 @@
         </p>
         <h2>Limitations</h2>
         <p>
-          The limitations of this app include that the regular updating of the
-          CHHS datasource and a consistent data format therein. The URL of the
-          datasource is a constant in this application, meaning a change would
-          cause data retrieval to break. Furthermore, any inconsistencies the
-          underlying datasource may experience will, naturally, carry over into
-          this app.
+          The most glaring limitation is that the current datasource only has
+          this data as far back as 4/1/20. Other limitations of this app include
+          that the regular updating of the CHHS datasource and a consistent data
+          format therein. The URL of the datasource is a constant in this
+          application, meaning a change would cause data retrieval to break.
+          Furthermore, any inconsistencies the underlying datasource may
+          experience will, naturally, carry over into this app.
         </p>
         <h2>App Code</h2>
         <p>
@@ -331,6 +332,7 @@ export default {
       }
     }
     > .about-container {
+      padding: 0 10px;
       h2 {
         margin-bottom: 0;
         margin-top: 30px;
