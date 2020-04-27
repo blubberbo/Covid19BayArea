@@ -326,9 +326,9 @@ export default {
         max-width: 500px;
         margin: 0 auto;
         text-align: left;
-        columns: 4;
-        -webkit-columns: 4;
-        -moz-columns: 4;
+        columns: 2;
+        -webkit-columns: 2;
+        -moz-columns: 2;
       }
     }
   }

@@ -41,12 +41,12 @@ This app was built using [Vue.js](https://vuejs.org/) and [Chart.js](https://www
 
 ## Project setup
 
-```
+```bash
 npm install
 ```
 
 ### Compiles and hot-reloads for development
 
-```
+```bash
 npm start
 ```
