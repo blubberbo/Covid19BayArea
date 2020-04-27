@@ -44,6 +44,10 @@ export default {
 h2 {
   margin-bottom: 0;
   margin-top: 0;
+
+  @media screen and (max-width: 1024px) {
+    margin-top: 30px;
+  }
 }
 .chart-container {
   @media screen and (min-width: 1025px) {
