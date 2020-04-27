@@ -4,8 +4,20 @@
       <h1>
         Covid-19 Bay Area Data
       </h1>
-      <button v-on:click="loadData()" class="refresh-button">Refresh</button>
+      <button
+        v-on:click="loadData()"
+        alt="Refresh Button"
+        class="refresh-button"
+      >
+        Refresh
+      </button>
     </div>
+    <img
+      alt="Loading Spinner"
+      class="loading-spinner"
+      src="./assets/loading-spinner.gif"
+      v-if="!dataLoaded"
+    />
     <div class="body-container" v-if="dataLoaded">
       <div class="chart-row">
         <LineChart
@@ -282,6 +294,10 @@ export default {
   text-align: center;
   color: #2c3e50;
   padding-bottom: 50px;
+
+  > .loading-spinner {
+    margin-top: 30px;
+  }
 
   > .header-container {
     > h1 {
