@@ -83,7 +83,11 @@
         <h2>App Code</h2>
         <p>
           The code for this app can be found in the following
-          <a title="Github repository" href="">GitHub repository</a>.
+          <a
+            title="Github repository"
+            href="https://github.com/blubberbo/Covid19BayArea"
+            >GitHub repository</a
+          >.
         </p>
       </div>
     </div>

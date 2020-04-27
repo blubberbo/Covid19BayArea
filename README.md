@@ -1,5 +1,9 @@
 # Covid-19 Bay Area
 
+## Website
+
+If you would like to see the site, please head over to: [https://covid-19-bay-area.netlify.app/](https://covid-19-bay-area.netlify.app/).
+
 ## About
 
 The above graphs show data about COVID-19 in the Bay Area. My wife
@@ -30,6 +34,10 @@ All data presented here is sourced from the [California Department of Public Hea
 ## Limitations
 
 The limitations of this app include that the regular updating of the CHHS datasource and a consistent data format therein. The URL of the datasource is a constant in this application, meaning a change would cause data retrieval to break. Furthermore, any inconsistencies the underlying datasource may experience will, naturally, carry over into this app.
+
+## Technologies
+
+This app was built using [Vue.js](https://vuejs.org/) and [Chart.js](https://www.chartjs.org/) and is currently deployed and hosted through [Netlify](https://www.netlify.com/).
 
 ## Project setup
 
