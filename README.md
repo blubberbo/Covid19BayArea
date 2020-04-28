@@ -29,11 +29,13 @@ are included and summed:
 
 ## Datasource
 
-All data presented here is sourced from the [California Department of Public Health](https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"), which publicly exposes this data via a .csv file [here](https://data.chhs.ca.gov/dataset/6882c390-b2d7-4b9a-aefa-2068cee63e47/resource/6cd8d424-dfaa-4bdd-9410-a3d656e1176e/download/covid19data.csv).
+All data presented here is sourced from the [California Department of Public Health](https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"), which publicly exposes this data via a public API endpoint [here](https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e).
 
 ## Limitations
 
-The limitations of this app include that the regular updating of the CHHS datasource and a consistent data format therein. The URL of the datasource is a constant in this application, meaning a change would cause data retrieval to break. Furthermore, any inconsistencies the underlying datasource may experience will, naturally, carry over into this app.
+- the current API limits calls to 32,000 results (approximately 20 months of data)
+- the underlying datasource format (eg. field names) must remain constant for the app to continue to work
+- any inconsistencies or inaccuracies from the underlying datasource will be inherited
 
 ## Technologies
 

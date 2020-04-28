@@ -1,9 +1,7 @@
 <template>
   <div id="app">
     <div class="header-container">
-      <h1>
-        Covid-19 Bay Area Data
-      </h1>
+      <h1>Covid-19 Bay Area Data</h1>
       <button
         v-on:click="loadData()"
         alt="Refresh Button"
@@ -74,25 +72,32 @@
           All data presented here is sourced from the
           <a
             title="CHHS Covid-19 Data Website"
+            target="_blank"
             href="https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"
             >California Department of Public Health</a
-          >, which publicly exposes this data via a .csv file
+          >, which publicly exposes this data via a public API endpoint
           <a
-            title="CHHS Covid-19 Data CSV"
-            href="https://data.chhs.ca.gov/dataset/6882c390-b2d7-4b9a-aefa-2068cee63e47/resource/6cd8d424-dfaa-4bdd-9410-a3d656e1176e/download/covid19data.csv"
+            title="CHHS Covid-19 Data API endpoint"
+            target="_blank"
+            href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e"
             >here</a
           >.
         </p>
         <h2>Limitations</h2>
-        <p>
-          The most glaring limitation is that the current datasource only has
-          this data as far back as 4/1/20. Other limitations of this app include
-          that the regular updating of the CHHS datasource and a consistent data
-          format therein. The URL of the datasource is a constant in this
-          application, meaning a change would cause data retrieval to break.
-          Furthermore, any inconsistencies the underlying datasource may
-          experience will, naturally, carry over into this app.
-        </p>
+        <ul class="limitations-list">
+          <li>
+            the current API limits calls to 32,000 results (approximately 20
+            months of data)
+          </li>
+          <li>
+            the underlying datasource format (eg. field names) must remain
+            constant for the app to continue to work
+          </li>
+          <li>
+            any inconsistencies or inaccuracies from the underlying datasource
+            will be inherited
+          </li>
+        </ul>
         <h2>App Code</h2>
         <p>
           The code for this app can be found in the following
@@ -110,8 +115,10 @@
 <script>
 import LineChart from './components/LineChart.vue';
 
-const csvUrl =
-  'https://data.chhs.ca.gov/dataset/6882c390-b2d7-4b9a-aefa-2068cee63e47/resource/6cd8d424-dfaa-4bdd-9410-a3d656e1176e/download/covid19data.csv';
+const axios = require('axios').default;
+
+const dataUrl =
+  'https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e&limit=32000';
 const countiesMonitored = [
   'Alameda',
   'Marin',
@@ -178,54 +185,56 @@ export default {
     loadData() {
       // indicate data is loading
       this.dataLoaded = false;
-      // retrieve the data from the csv URL
-      this.$papa.parse(csvUrl, {
-        download: true,
-        complete: (data) => {
-          // process the data returned
-          const processedData = this.processData(data.data);
-          this.confirmedCasesConfig.labels = processedData.dates;
-          this.confirmedCasesConfig.data = processedData.confirmed;
-          this.confirmedCasesDeltaConfig.labels = processedData.dates;
-          this.confirmedCasesDeltaConfig.data = processedData.confirmedDelta;
-          this.deathsConfig.labels = processedData.dates;
-          this.deathsConfig.data = processedData.deaths;
-          this.deathsDeltaConfig.labels = processedData.dates;
-          this.deathsDeltaConfig.data = processedData.deathsDelta;
-          // after all the data has loaded, change the flag
-          this.dataLoaded = true;
-        },
+      // make the api call
+      axios.get(dataUrl).then((response) => {
+        // extract the records
+        const { records } = response.data.result;
+        // process the data returned
+        const processedData = this.processRecords(records);
+        this.confirmedCasesConfig.labels = processedData.dates;
+        this.confirmedCasesConfig.data = processedData.confirmed;
+        this.confirmedCasesDeltaConfig.labels = processedData.dates;
+        this.confirmedCasesDeltaConfig.data = processedData.confirmedDelta;
+        this.deathsConfig.labels = processedData.dates;
+        this.deathsConfig.data = processedData.deaths;
+        this.deathsDeltaConfig.labels = processedData.dates;
+        this.deathsDeltaConfig.data = processedData.deathsDelta;
+        // after all the data has loaded, change the flag
+        this.dataLoaded = true;
       });
     },
-    processData(data) {
+    processRecords(records) {
       const datesArray = [];
       const sumConfirmedArray = [];
       const deltaConfirmedArray = [0];
       const sumDeathsArray = [];
       const deltaDeathsArray = [0];
       // remove the first item from the array because it is the definitions
-      data.shift();
+      records.shift();
       // iterate through every item in the array
-      data.forEach((originalDataPiece) => {
+      records.forEach((originalRecord) => {
         // extract the county, date, confirmed cases, and deaths from the original data piece
-        const county = originalDataPiece[0];
+        const county = originalRecord['County Name'];
         // clean the format of the date
-        const date = originalDataPiece[1]
-          ? this.formatDate(originalDataPiece[1])
-          : originalDataPiece[1];
-        // in the event either of these are empty strings, insert 0
-        const confirmed =
-          originalDataPiece[2] && originalDataPiece[2].length > 0
-            ? Number(originalDataPiece[2])
-            : 0;
-        const deaths =
-          originalDataPiece[3] && originalDataPiece[3].length > 0
-            ? Number(originalDataPiece[3])
-            : 0;
+        const date = originalRecord['Most Recent Date']
+          ? this.formatDate(
+              new Date(originalRecord['Most Recent Date']).toLocaleDateString(
+                'en-US',
+                {
+                  year: '2-digit',
+                  month: '2-digit',
+                  day: '2-digit',
+                },
+              ),
+            )
+          : originalRecord['Most Recent Date'];
 
         // if the date is valid
         if (date) {
-          // only continue is the county is in our list of counties we are tracking
+          // in the event either of these are empty strings, insert 0
+          const confirmed = originalRecord['Total Count Confirmed'];
+          const deaths = originalRecord['Total Count Deaths'];
+          // only continue if the county is in our list of counties we are tracking
           if (countiesMonitored.includes(county)) {
             // check if the date does not exist in the dates array
             // that means this is the first time we are encountering this date
@@ -275,8 +284,6 @@ export default {
       }
       // remove any 0 after a '/' - this should only be possible with the day
       formattedDate = formattedDate.replace('/0', '/');
-      // replace the year 2020 with just 20
-      formattedDate = formattedDate.replace('2020', '20');
       // return the formatted date
       return formattedDate;
     },
@@ -340,13 +347,18 @@ export default {
       p {
         margin-top: 0;
       }
-      > .counties-list {
-        max-width: 500px;
-        margin: 0 auto;
+
+      > ul {
         text-align: left;
-        columns: 2;
-        -webkit-columns: 2;
-        -moz-columns: 2;
+        display: inline-block;
+        margin: 0 auto;
+
+        &.counties-list {
+          columns: 2;
+          -webkit-columns: 2;
+          -moz-columns: 2;
+          column-gap: 50px;
+        }
       }
     }
   }
