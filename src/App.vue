@@ -2,13 +2,7 @@
   <div id="app">
     <div class="header-container">
       <h1>Covid-19 Bay Area Data</h1>
-      <button
-        v-on:click="loadData()"
-        alt="Refresh Button"
-        class="refresh-button"
-      >
-        Refresh
-      </button>
+      <button v-on:click="loadData()" alt="Refresh Button" class="refresh-button">Refresh</button>
     </div>
     <img
       alt="Loading Spinner"
@@ -74,14 +68,13 @@
             title="CHHS Covid-19 Data Website"
             target="_blank"
             href="https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"
-            >California Department of Public Health</a
-          >, which publicly exposes this data via a public API endpoint
+          >California Department of Public Health</a>, which publicly exposes this data via a
+          public API endpoint
           <a
             title="CHHS Covid-19 Data API endpoint"
             target="_blank"
             href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e"
-            >here</a
-          >.
+          >here</a>.
         </p>
         <h2>Limitations</h2>
         <ul class="limitations-list">
@@ -104,8 +97,7 @@
           <a
             title="Github repository"
             href="https://github.com/blubberbo/Covid19BayArea"
-            >GitHub repository</a
-          >.
+          >GitHub repository</a>.
         </p>
       </div>
     </div>
@@ -217,16 +209,7 @@ export default {
         const county = originalRecord['County Name'];
         // clean the format of the date
         const date = originalRecord['Most Recent Date']
-          ? this.formatDate(
-              new Date(originalRecord['Most Recent Date']).toLocaleDateString(
-                'en-US',
-                {
-                  year: '2-digit',
-                  month: '2-digit',
-                  day: '2-digit',
-                },
-              ),
-            )
+          ? this.formatDate(originalRecord['Most Recent Date'])
           : originalRecord['Most Recent Date'];
 
         // if the date is valid
@@ -278,6 +261,16 @@ export default {
     },
     formatDate(date) {
       let formattedDate = date;
+      // remove the time
+      formattedDate = formattedDate.replace('T00:00:00', '');
+      // change the '-'s to '/'s
+      formattedDate = formattedDate.replace(/-/g, '/');
+      // parse it into a date and then back into a string with a 2 digit year
+      formattedDate = new Date(formattedDate).toLocaleDateString('en-US', {
+        year: '2-digit',
+        month: '2-digit',
+        day: '2-digit',
+      });
       // if the first character is 0, remove it
       if (formattedDate.charAt(0) === '0') {
         formattedDate = formattedDate.substring(1);
