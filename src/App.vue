@@ -37,8 +37,8 @@
           The data is summed in the first graphs and calculated delta ("New") graphs showing the
           rate of change of the summative graphs are provided afterwards. On the delta graphs, a
           trendline has been drawn showing the seven day average values to provide a more conistent
-          represatation of the trend and counteracting the sporadic data availability on weekends.
-          Optionally, you can also compare all Bar Area data with statewide data for all of
+          representation of the trend and counteracting the sporadic data availability on weekends.
+          Optionally, you can also compare all Bay Area data with statewide data for all of
           California using the button at the top. Bay Area counties are defined here as:
         </p>
         <ul class="counties-list">

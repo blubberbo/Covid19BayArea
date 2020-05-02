@@ -1,6 +1,6 @@
 {
   "name": "covid19bayarea",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Graphs of COVID-19 data specifically for Bay Area counties.",
   "author": "Sydney Heller",
   "license": "ISC",
