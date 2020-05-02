@@ -557,11 +557,16 @@ export default {
     }
     > .about-container {
       padding: 0 10px;
+      display: flex;
+      flex-wrap: wrap;
+
       h2 {
+        width: 100%;
         margin-bottom: 0;
         margin-top: 30px;
       }
       p {
+        width: 100%;
         margin-top: 0;
       }
 
