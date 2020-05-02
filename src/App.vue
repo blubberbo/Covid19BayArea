@@ -2,39 +2,33 @@
   <div id="app">
     <div class="header-container">
       <h1>Covid-19 Bay Area Data</h1>
-      <button v-on:click="loadData()" alt="Refresh Button" class="refresh-button">Refresh</button>
+      <button
+        v-on:click="includeCA = includeCA ? false : true"
+        alt="Toggle California Button"
+        class="button"
+        :disabled="!dataLoaded"
+      >{{ !includeCA ? 'Compare to CA Data' : 'Bay Area Only' }}</button>
+    </div>
+    <div class="refresh-data-container" v-if="!dataLoaded && apiError">
+      <span class="error">An error occurred, please refresh the data.</span>
+      <br />
+      <button v-on:click="loadData()" alt="Refresh Button" class="button refresh-button">Refresh</button>
     </div>
     <img
       alt="Loading Spinner"
       class="loading-spinner"
       src="./assets/loading-spinner.gif"
-      v-if="!dataLoaded"
+      v-if="!dataLoaded && !apiError"
     />
+
     <div class="body-container" v-if="dataLoaded">
       <div class="chart-row">
-        <LineChart
-          v-if="
-            confirmedCasesConfig.data && confirmedCasesConfig.data.length > 0
-          "
-          :chartConfig="confirmedCasesConfig"
-        />
-        <LineChart
-          v-if="
-            confirmedCasesDeltaConfig.data &&
-              confirmedCasesDeltaConfig.data.length > 0
-          "
-          :chartConfig="confirmedCasesDeltaConfig"
-        />
+        <LineChart :chart-config="confirmedCasesConfig" :include-california="includeCA" />
+        <LineChart :chart-config="confirmedCasesDeltaConfig" :include-california="includeCA" />
       </div>
       <div class="chart-row">
-        <LineChart
-          v-if="deathsConfig.data && deathsConfig.data.length > 0"
-          :chartConfig="deathsConfig"
-        />
-        <LineChart
-          v-if="deathsDeltaConfig.data && deathsDeltaConfig.data.length > 0"
-          :chartConfig="deathsDeltaConfig"
-        />
+        <LineChart :chart-config="deathsConfig" :include-california="includeCA" />
+        <LineChart :chart-config="deathsDeltaConfig" :include-california="includeCA" />
       </div>
       <div class="about-container">
         <h2>About</h2>
@@ -68,12 +62,12 @@
             title="CHHS Covid-19 Data Website"
             target="_blank"
             href="https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"
-          >California Department of Public Health</a>, which publicly exposes this data via a
-          public API endpoint
+          >California Department of Public Health</a>, which publicly exposes this data via a public API endpoint
           <a
             title="CHHS Covid-19 Data API endpoint"
             target="_blank"
-            href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e"
+            href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id
+            =6cd8d424-dfaa-4bdd-9410-a3d656e1176e"
           >here</a>.
         </p>
         <h2>Limitations</h2>
@@ -126,12 +120,20 @@ const countiesMonitored = [
   'Stanislaus',
   'San Joaquin',
 ];
+
+const confirmedBayAreaChartColor = 'rgba(60, 186, 159, .5)';
+const deathsBayAreaChartColor = 'rgba(142, 94, 162, .5)';
+const californiaChartColor = 'rgba(62,149,205, 0.1)';
+const sevenDayAvgChartColor = 'rgba(62,149,205, 1)';
 const chartOptionsDefault = {
   responsive: true,
   maintainAspectRatio: false,
-  legend: {
-    onClick: null,
-  },
+};
+const sevenDayAvgChartOptionsDefault = {
+  fill: false,
+  borderWidth: 2,
+  pointRadius: 0,
+  borderColor: sevenDayAvgChartColor,
 };
 
 export default {
@@ -143,66 +145,110 @@ export default {
     return {
       confirmedCasesConfig: {
         title: 'Confirmed Cases',
-        color: 'rgba(60, 186, 159, 0.5)',
+        color: californiaChartColor,
+        colorBayArea: confirmedBayAreaChartColor,
         options: chartOptionsDefault,
         labels: [],
         data: [],
       },
       confirmedCasesDeltaConfig: {
-        title: 'Confirmed Cases Delta',
-        color: 'rgba(60, 186, 159, 0.5)',
+        title: '# of New Confirmed Cases',
+        color: californiaChartColor,
+        colorBayArea: confirmedBayAreaChartColor,
         options: chartOptionsDefault,
+        sevenDaysAvgOptions: sevenDayAvgChartOptionsDefault,
         labels: [],
         data: [],
       },
       deathsConfig: {
         title: 'Deaths',
-        color: 'rgba(142, 94, 162, .5)',
+        color: californiaChartColor,
+        colorBayArea: deathsBayAreaChartColor,
         options: chartOptionsDefault,
         labels: [],
         data: [],
       },
       deathsDeltaConfig: {
-        title: 'Deaths Delta',
-        color: 'rgba(142, 94, 162, .5)',
+        title: '# of New Deaths',
+        color: californiaChartColor,
+        colorBayArea: deathsBayAreaChartColor,
         options: chartOptionsDefault,
+        sevenDaysAvgOptions: sevenDayAvgChartOptionsDefault,
         labels: [],
         data: [],
       },
       dataLoaded: false,
+      apiError: false,
+      includeCA: false,
     };
   },
   // process the data returned by the api
   methods: {
     loadData() {
+      // reset the apiError flag
+      this.apiError = false;
       // indicate data is loading
       this.dataLoaded = false;
+      // reset the includeCA flag
+      this.includeCA = false;
+
       // make the api call
-      axios.get(dataUrl).then((response) => {
-        // extract the records
-        const { records } = response.data.result;
-        // process the data returned
-        const processedData = this.processRecords(records);
-        this.confirmedCasesConfig.labels = processedData.dates;
-        this.confirmedCasesConfig.data = processedData.confirmed;
-        this.confirmedCasesDeltaConfig.labels = processedData.dates;
-        this.confirmedCasesDeltaConfig.data = processedData.confirmedDelta;
-        this.deathsConfig.labels = processedData.dates;
-        this.deathsConfig.data = processedData.deaths;
-        this.deathsDeltaConfig.labels = processedData.dates;
-        this.deathsDeltaConfig.data = processedData.deathsDelta;
-        // after all the data has loaded, change the flag
-        this.dataLoaded = true;
-      });
+      axios
+        .get(dataUrl)
+        .then((response) => {
+          // extract the records
+          const { records } = response.data.result;
+          // process the data returned
+          const processedData = this.processRecords(records);
+
+          this.confirmedCasesConfig.labels = processedData.dates;
+          this.confirmedCasesConfig.data = processedData.confirmed;
+          this.confirmedCasesConfig.dataBayArea =
+            processedData.confirmedBayArea;
+          this.confirmedCasesDeltaConfig.labels = processedData.dates;
+          this.confirmedCasesDeltaConfig.data = processedData.confirmedDelta;
+          this.confirmedCasesDeltaConfig.sevenDayAvg =
+            processedData.confirmedDeltaSevenDayAvg;
+          this.confirmedCasesDeltaConfig.dataBayArea =
+            processedData.confirmedDeltaBayArea;
+          this.confirmedCasesDeltaConfig.sevenDayAvgBayArea =
+            processedData.confirmedDeltaSevenDayAvgBayArea;
+          this.deathsConfig.labels = processedData.dates;
+          this.deathsConfig.data = processedData.deaths;
+          this.deathsConfig.dataBayArea = processedData.deathsBayArea;
+          this.deathsDeltaConfig.labels = processedData.dates;
+          this.deathsDeltaConfig.data = processedData.deathsDelta;
+          this.deathsDeltaConfig.sevenDayAvg =
+            processedData.deathsDeltaSevenDayAvg;
+          this.deathsDeltaConfig.dataBayArea = processedData.deathsDeltaBayArea;
+          this.deathsDeltaConfig.sevenDayAvgBayArea =
+            processedData.deathsDeltaSevenDayAvgBayArea;
+          // after all the data has loaded, change the flag
+          this.dataLoaded = true;
+        })
+        .catch((error) => {
+          console.error(error);
+          // indicate there was an error
+          this.apiError = true;
+        });
     },
     processRecords(records) {
-      const datesArray = [];
-      const sumConfirmedArray = [];
-      const deltaConfirmedArray = [0];
-      const sumDeathsArray = [];
-      const deltaDeathsArray = [0];
-      // remove the first item from the array because it is the definitions
-      records.shift();
+      // create areas for California-wide data
+      let datesArray = [];
+      let sumConfirmedArray = [];
+      let deltaConfirmedArray = [];
+      let sevenDayAvgDeltaConfirmedArray = [];
+      let sumDeathsArray = [];
+      let deltaDeathsArray = [];
+      let sevenDayAvgDeltaDeathsArray = [];
+      // create arrays for just the Bay Area data
+      let sumConfirmedBayAreaArray = [];
+      let deltaConfirmedBayAreaArray = [];
+      let sevenDayAvgDeltaConfirmedBayAreaArray = [];
+      let sumDeathsBayAreaArray = [];
+      let deltaDeathsBayAreaArray = [];
+      let sevenDayAvgDeltaDeathsBayAreaArray = [];
+
       // iterate through every item in the array
       records.forEach((originalRecord) => {
         // extract the county, date, confirmed cases, and deaths from the original data piece
@@ -214,49 +260,110 @@ export default {
 
         // if the date is valid
         if (date) {
-          // in the event either of these are empty strings, insert 0
+          // extract the number of confirmed cases and deaths
           const confirmed = originalRecord['Total Count Confirmed'];
           const deaths = originalRecord['Total Count Deaths'];
-          // only continue if the county is in our list of counties we are tracking
+
+          // ? process the confirmed and deaths count for the entire state and push them
+          // build an array with all the dates
+          // check if the date does not exist in the dates array
+          // if the index is -1, that means this date's value does not exist
+          if (datesArray.indexOf(date) === -1) {
+            // insert the date
+            datesArray.push(date);
+          }
+          // call the local function to add the data to the array intelligently
+          // sumConfirmedArray[dateIndex] += confirmed;
+          // sumDeathsArray[dateIndex] += deaths;
+          sumConfirmedArray = this.addDataToArray(
+            sumConfirmedArray,
+            date,
+            'confirmed',
+            confirmed,
+          );
+          sumDeathsArray = this.addDataToArray(
+            sumDeathsArray,
+            date,
+            'deaths',
+            deaths,
+          );
+
+          // ? now, check to see if the county is one of the Bay Area counties we are tracking
+          // if is, do the same logic as above, but for the Bay Area arrays
           if (countiesMonitored.includes(county)) {
-            // check if the date does not exist in the dates array
-            // that means this is the first time we are encountering this date
-            const dateIndex = datesArray.indexOf(date);
-            // if the index is -1, that means this date's values do not exist
-            if (dateIndex === -1) {
-              // insert the date, confirmed, and deaths
-              datesArray.push(date);
-              sumConfirmedArray.push(confirmed);
-              sumDeathsArray.push(deaths);
-            } else {
-              // the index exists
-              // so add the value to the previous value at the given index in each array
-              sumConfirmedArray[dateIndex] += confirmed;
-              sumDeathsArray[dateIndex] += deaths;
-            }
+            // call the local function to add the data to the array intelligently
+            sumConfirmedBayAreaArray = this.addDataToArray(
+              sumConfirmedBayAreaArray,
+              date,
+              'confirmed',
+              confirmed,
+            );
+            sumDeathsBayAreaArray = this.addDataToArray(
+              sumDeathsBayAreaArray,
+              date,
+              'deaths',
+              deaths,
+            );
           }
         }
       });
-      // iterate through the entire sum confirmed array to create the delta array
-      for (let sumIndex = 1; sumIndex < sumConfirmedArray.length; sumIndex++) {
-        deltaConfirmedArray.push(
-          sumConfirmedArray[sumIndex] - sumConfirmedArray[sumIndex - 1],
-        );
-      }
 
-      // iterate through the entire sum deaths array to create the delta array
-      for (let sumIndex = 1; sumIndex < sumDeathsArray.length; sumIndex++) {
-        deltaDeathsArray.push(
-          sumDeathsArray[sumIndex] - sumDeathsArray[sumIndex - 1],
-        );
-      }
+      // before continuing with the processing, we need to sort and trim the arrays we have built
+      // start by sorting the date array
+      datesArray = datesArray.sort((a, b) => new Date(a) - new Date(b));
+
+      // sort the other 4 arrays using the local method
+      sumConfirmedArray = this.sortAndTrimArray(sumConfirmedArray, 'confirmed');
+      sumDeathsArray = this.sortAndTrimArray(sumDeathsArray, 'deaths');
+      sumConfirmedBayAreaArray = this.sortAndTrimArray(
+        sumConfirmedBayAreaArray,
+        'confirmed',
+      );
+      sumDeathsBayAreaArray = this.sortAndTrimArray(
+        sumDeathsBayAreaArray,
+        'deaths',
+      );
+
+      // ? Calculate the delta arrays for the entire state of CA
+      deltaConfirmedArray = this.calculateDeltaArray(sumConfirmedArray);
+      deltaDeathsArray = this.calculateDeltaArray(sumDeathsArray);
+
+      // ? Calculate the seven day average arrays for the entire state of CA
+      sevenDayAvgDeltaConfirmedArray = this.calculateSevenDayAvgArray(
+        deltaConfirmedArray,
+      );
+      sevenDayAvgDeltaDeathsArray = this.calculateSevenDayAvgArray(
+        deltaDeathsArray,
+      );
+
+      // ? Do the same calculation as above for the deltas but just for the Bay Area counties
+      deltaConfirmedBayAreaArray = this.calculateDeltaArray(
+        sumConfirmedBayAreaArray,
+      );
+      deltaDeathsBayAreaArray = this.calculateDeltaArray(sumDeathsBayAreaArray);
+
+      // ? Calculate the seven day average arrays but just for the Bay Area counties
+      sevenDayAvgDeltaConfirmedBayAreaArray = this.calculateSevenDayAvgArray(
+        deltaConfirmedBayAreaArray,
+      );
+      sevenDayAvgDeltaDeathsBayAreaArray = this.calculateSevenDayAvgArray(
+        deltaDeathsBayAreaArray,
+      );
 
       return {
         dates: datesArray,
         confirmed: sumConfirmedArray,
         confirmedDelta: deltaConfirmedArray,
+        confirmedDeltaSevenDayAvg: sevenDayAvgDeltaConfirmedArray,
         deaths: sumDeathsArray,
         deathsDelta: deltaDeathsArray,
+        deathsDeltaSevenDayAvg: sevenDayAvgDeltaDeathsArray,
+        confirmedBayArea: sumConfirmedBayAreaArray,
+        confirmedDeltaBayArea: deltaConfirmedBayAreaArray,
+        confirmedDeltaSevenDayAvgBayArea: sevenDayAvgDeltaConfirmedBayAreaArray,
+        deathsBayArea: sumDeathsBayAreaArray,
+        deathsDeltaBayArea: deltaDeathsBayAreaArray,
+        deathsDeltaSevenDayAvgBayArea: sevenDayAvgDeltaDeathsBayAreaArray,
       };
     },
     formatDate(date) {
@@ -279,6 +386,68 @@ export default {
       formattedDate = formattedDate.replace('/0', '/');
       // return the formatted date
       return formattedDate;
+    },
+    addDataToArray(originalArray, date, property, data) {
+      // create a temporary array
+      const tempArray = originalArray;
+
+      // find index of item to be replaced
+      const targetIndex = originalArray.findIndex((obj) => obj.date === date);
+
+      // if the date does not exist in the array
+      if (targetIndex === -1) {
+        // build an item to add to the array
+        const tempItem = { date };
+        tempItem[property] = data;
+        // add the item to the array
+        tempArray.push(tempItem);
+      } else {
+        // else, update the value by adding the data to it
+        tempArray[targetIndex][property] += data;
+      }
+
+      // return the temporary array
+      return tempArray;
+    },
+    sortAndTrimArray(originalArray, property) {
+      const sortedAndTrimmedArray = [];
+      // sort the original array by date, converting the date strings to dates
+      const sortedArray = originalArray.sort(
+        (a, b) => new Date(a.date) - new Date(b.date),
+      );
+      // loop through the sortedArray
+      sortedArray.forEach((obj) => sortedAndTrimmedArray.push(obj[property]));
+
+      // return the sorted and trimmed array
+      return sortedAndTrimmedArray;
+    },
+    calculateDeltaArray(originalArray) {
+      // start with a single 0 in the array
+      const returnArray = [0];
+      // iterate through the entire sum confirmed array to create the delta array
+      // begin at index 1, since the delta can only be calculated when there is a previous element
+      for (let sumIndex = 1; sumIndex < originalArray.length; sumIndex++) {
+        returnArray.push(originalArray[sumIndex] - originalArray[sumIndex - 1]);
+      }
+      return returnArray;
+    },
+    calculateSevenDayAvgArray(originalArray) {
+      // start with a six 0s in the array
+      const returnArray = [null, null, null, null, null, null];
+      // iterate through the entire sum confirmed array to create the delta array
+      // begin at index 6 - the seven day average can only be calculated with six previous elements
+      for (let sumIndex = 6; sumIndex < originalArray.length; sumIndex++) {
+        // calculate the 7 element average
+        let average = 0;
+        // add the 7 values together
+        for (let avgIndex = sumIndex; avgIndex >= sumIndex - 6; avgIndex--) {
+          average += originalArray[avgIndex];
+        }
+        // divide the result by 7
+        average /= 7;
+        returnArray.push(average);
+      }
+      return returnArray;
     },
   },
   mounted() {
@@ -304,25 +473,54 @@ export default {
     > h1 {
       margin-bottom: 5px;
     }
+  }
 
-    > .refresh-button {
-      background-color: #3e95cd;
-      border-radius: 28px;
-      border: 1px solid #1c7ab7;
-      display: inline-block;
-      cursor: pointer;
-      color: #ffffff;
-      font-size: 17px;
-      padding: 12px 15px;
+  .button {
+    background-color: #3e95cd;
+    border-radius: 28px;
+    border: 1px solid #1c7ab7;
+    display: inline-block;
+    cursor: pointer;
+    color: #ffffff;
+    font-size: 17px;
+    padding: 12px 15px;
+    &:hover {
+      background-color: #0870b3;
+    }
+    &:active {
+      position: relative;
+      top: 1px;
+    }
+    &:focus {
+      outline: none;
+    }
+    &:disabled,
+    &[disabled] {
+      opacity: 0.6;
+
       &:hover {
-        background-color: #0870b3;
+        cursor: default;
+        background-color: #3e95cd;
       }
-      &:active {
-        position: relative;
-        top: 1px;
+    }
+
+    &.refresh-button {
+      background-color: #41b883;
+      border-color: #2fa26f;
+      margin-top: 5px;
+
+      &:hover {
+        background-color: #23865a;
       }
     }
   }
+
+  > .refresh-data-container {
+    font-weight: bold;
+    color: red;
+    margin-top: 20px;
+  }
+
   > .body-container {
     > .chart-row {
       margin-top: 30px;
