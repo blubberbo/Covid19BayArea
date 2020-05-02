@@ -6,12 +6,13 @@ If you would like to see the site, please head over to: [https://covid-19-bay-ar
 
 ## About
 
-The above graphs show data about COVID-19 in the Bay Area. My wife
-wanted a way to track the following data but only for specific counties.
-After looking around on the internet, I only found places that graphed
-data based on all of CA (separated by county) but did not allow you to
-group the county data. In this case, data from the following counties
-are included and summed:
+The above graphs show data about COVID-19 in certain Bay Area counties (see below).
+The data is summed in the first graphs and calculated delta ("New") graphs showing the
+rate of change of the summative graphs are provided afterwards. On the delta graphs, a
+trendline has been drawn showing the seven day average values to provide a more consistent
+represatation of the trend and counteracting the sporadic data availability on weekends.
+Optionally, you can also compare all Bar Area data with statewide data for all of
+California using the button at the top. Bay Area counties are defined here as:
 
 - Alameda
 - Contra Costa
