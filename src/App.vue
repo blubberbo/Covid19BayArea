@@ -7,12 +7,20 @@
         alt="Toggle California Button"
         class="button"
         :disabled="!dataLoaded"
-      >{{ !includeCA ? 'Compare to CA Data' : 'Bay Area Only' }}</button>
+      >
+        {{ !includeCA ? 'Compare to CA Data' : 'Bay Area Only' }}
+      </button>
     </div>
     <div class="refresh-data-container" v-if="!dataLoaded && apiError">
       <span class="error">An error occurred, please refresh the data.</span>
       <br />
-      <button v-on:click="loadData()" alt="Refresh Button" class="button refresh-button">Refresh</button>
+      <button
+        v-on:click="loadData()"
+        alt="Refresh Button"
+        class="button refresh-button"
+      >
+        Refresh
+      </button>
     </div>
     <img
       alt="Loading Spinner"
@@ -20,32 +28,49 @@
       src="./assets/loading-spinner.gif"
       v-if="!dataLoaded && !apiError"
     />
+    <h3 v-if="dataLoadingIsDelayed">
+      The data is taking a little while to load. This could be because the
+      datasource has fallen asleep. Standby...
+    </h3>
 
     <div class="body-container" v-if="dataLoaded">
       <div class="chart-row">
-        <LineChart :chart-config="confirmedCasesConfig" :include-california="includeCA" />
-        <LineChart :chart-config="confirmedCasesDeltaConfig" :include-california="includeCA" />
+        <LineChart
+          :chart-config="confirmedCasesConfig"
+          :include-california="includeCA"
+        />
+        <LineChart
+          :chart-config="confirmedCasesDeltaConfig"
+          :include-california="includeCA"
+        />
       </div>
       <div class="chart-row">
-        <LineChart :chart-config="deathsConfig" :include-california="includeCA" />
-        <LineChart :chart-config="deathsDeltaConfig" :include-california="includeCA" />
+        <LineChart
+          :chart-config="deathsConfig"
+          :include-california="includeCA"
+        />
+        <LineChart
+          :chart-config="deathsDeltaConfig"
+          :include-california="includeCA"
+        />
       </div>
       <div class="about-container">
         <h2>About</h2>
         <p>
           My wife is a health care worker in the Bay Area and had been looking
-          for data specifically about Bay Area counties. She was only able to find
-          data either for all of CA or separated by county; nothing that grouped
-          the Bay Area counties together. That ask is where this app originated.
-          The above graphs show data about COVID-19 in certain Bay Area counties
-          (see below). The data is summed in the first graphs and calculated
-          delta ("New") graphs showing the rate of change of the summative
-          graphs are provided afterwards. On the delta graphs, a trendline has
-          been drawn showing the seven day average values to provide a more
-          consistent representation of the trend and counteracting the sporadic
-          data availability on weekends. Optionally, you can also compare all
-          Bay Area data with statewide data for all of California using the
-          button at the top. Bay Area counties are defined here as:
+          for data specifically about Bay Area counties. She was only able to
+          find data either for all of CA or separated by county; nothing that
+          grouped the Bay Area counties together. That ask is where this app
+          originated. The above graphs show data about COVID-19 in certain Bay
+          Area counties (see below). The data is summed in the first graphs and
+          calculated delta ("New") graphs showing the rate of change of the
+          summative graphs are provided afterwards. On the delta graphs, a
+          trendline has been drawn showing the seven day average values to
+          provide a more consistent representation of the trend and
+          counteracting the sporadic data availability on weekends. Optionally,
+          you can also compare all Bay Area data with statewide data for all of
+          California using the button at the top. Bay Area counties are defined
+          here as:
         </p>
         <ul class="counties-list">
           <li>Alameda</li>
@@ -69,13 +94,15 @@
             title="CHHS Covid-19 Data Website"
             target="_blank"
             href="https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"
-          >California Department of Public Health</a>, which publicly exposes this data via a public API endpoint
+            >California Department of Public Health</a
+          >, which publicly exposes this data via a public API endpoint
           <a
             title="CHHS Covid-19 Data API endpoint"
             target="_blank"
             href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id
             =6cd8d424-dfaa-4bdd-9410-a3d656e1176e"
-          >here</a>.
+            >here</a
+          >.
         </p>
         <h2>Limitations</h2>
         <ul class="limitations-list">
@@ -98,7 +125,8 @@
           <a
             title="Github repository"
             href="https://github.com/blubberbo/Covid19BayArea"
-          >GitHub repository</a>.
+            >GitHub repository</a
+          >.
         </p>
       </div>
     </div>
@@ -187,6 +215,7 @@ export default {
       dataLoaded: false,
       apiError: false,
       includeCA: false,
+      dataLoadingIsDelayed: false,
     };
   },
   // process the data returned by the api
@@ -198,6 +227,11 @@ export default {
       this.dataLoaded = false;
       // reset the includeCA flag
       this.includeCA = false;
+
+      // create a timeout that - after 5 seconds, indicate the loading is delayed (aka show the text)
+      const delayedTimeout = setTimeout(() => {
+        this.dataLoadingIsDelayed = true;
+      }, 5000);
 
       // make the api call
       axios
@@ -232,11 +266,19 @@ export default {
             processedData.deathsDeltaSevenDayAvgBayArea;
           // after all the data has loaded, change the flag
           this.dataLoaded = true;
+          // in the event the delayedTimeout has not been triggered yet, stop it
+          clearTimeout(delayedTimeout);
+          // since the loading has completed, it is no longer delayed as well
+          this.dataLoadingIsDelayed = false;
         })
         .catch((error) => {
           console.error(error);
           // indicate there was an error
           this.apiError = true;
+          // in the event the delayedTimeout has not been triggered yet, stop it
+          clearTimeout(delayedTimeout);
+          // since the loading has completed, it is no longer delayed as well
+          this.dataLoadingIsDelayed = false;
         });
     },
     processRecords(records) {
@@ -514,7 +556,7 @@ export default {
     &.refresh-button {
       background-color: #41b883;
       border-color: #2fa26f;
-      margin-top: 5px;
+      margin-top: 20px;
 
       &:hover {
         background-color: #23865a;
