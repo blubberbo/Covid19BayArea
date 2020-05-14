@@ -210,7 +210,7 @@ export default {
       }, 5000);
 
       // make the api call
-      fetch(dataUrl)
+      fetch(dataUrl, { cache: 'no-store' })
         .then((response) => response.json())
         .then((data) => {
           // extract the records
