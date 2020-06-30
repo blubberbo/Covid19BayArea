@@ -7,12 +7,20 @@
         alt="Toggle California Button"
         class="button"
         :disabled="!dataLoaded"
-      >{{ !includeCA ? 'Compare to CA Data' : 'Bay Area Only' }}</button>
+      >
+        {{ !includeCA ? 'Compare to CA Data' : 'Bay Area Only' }}
+      </button>
     </div>
     <div class="refresh-data-container" v-if="!dataLoaded && apiError">
       <span class="error">An error occurred, please refresh the data.</span>
       <br />
-      <button v-on:click="loadData()" alt="Refresh Button" class="button refresh-button">Refresh</button>
+      <button
+        v-on:click="loadData()"
+        alt="Refresh Button"
+        class="button refresh-button"
+      >
+        Refresh
+      </button>
     </div>
     <img
       alt="Loading Spinner"
@@ -25,16 +33,28 @@
       datasource has fallen asleep. Standby...
     </h3>
 
-    <div class="body-container" v-if="dataLoaded">
-      <div class="chart-row">
-        <LineChart :chart-config="confirmedCasesConfig" :include-california="includeCA" />
-        <LineChart :chart-config="confirmedCasesDeltaConfig" :include-california="includeCA" />
+    <div class="body-container">
+      <div class="chart-row" v-if="dataLoaded">
+        <LineChart
+          :chart-config="confirmedCasesConfig"
+          :include-california="includeCA"
+        />
+        <LineChart
+          :chart-config="confirmedCasesDeltaConfig"
+          :include-california="includeCA"
+        />
       </div>
-      <div class="chart-row">
-        <LineChart :chart-config="deathsConfig" :include-california="includeCA" />
-        <LineChart :chart-config="deathsDeltaConfig" :include-california="includeCA" />
+      <div class="chart-row" v-if="dataLoaded">
+        <LineChart
+          :chart-config="deathsConfig"
+          :include-california="includeCA"
+        />
+        <LineChart
+          :chart-config="deathsDeltaConfig"
+          :include-california="includeCA"
+        />
       </div>
-      <div class="about-container">
+      <div class="about-container" v-if="dataLoaded || apiError">
         <h2>About</h2>
         <p>
           My wife is a health care worker in the Bay Area and had been looking
@@ -69,18 +89,25 @@
         </ul>
         <h2>Datasource</h2>
         <p>
+          <i
+            >As of 6/29/20: the underlying datasource has changed. A fix has
+            been implemented.</i
+          >
+        </p>
+        <p>
           All data presented here is sourced from the
           <a
-            title="CHHS Covid-19 Data Website"
+            title="CA.Gov Open Data Portal COVID-19 Cases Website"
             target="_blank"
-            href="https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"
-          >California Department of Public Health</a>, which publicly exposes this data via a public API endpoint
+            href="https://data.ca.gov/dataset/covid-19-cases/resource/926fd08f-cc91-4828-af38-bd45de97f8c3"
+            >CA.Gov Open Data Portal</a
+          >, which publicly exposes this data via a public API endpoint
           <a
-            title="CHHS Covid-19 Data API endpoint"
+            title="CA.Gov Open Data Portal Covid-19 Data API endpoint"
             target="_blank"
-            href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id
-            =6cd8d424-dfaa-4bdd-9410-a3d656e1176e"
-          >here</a>.
+            href="https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3"
+            >here</a
+          >.
         </p>
         <h2>Limitations</h2>
         <ul class="limitations-list">
@@ -103,7 +130,8 @@
           <a
             title="Github repository"
             href="https://github.com/blubberbo/Covid19BayArea"
-          >GitHub repository</a>.
+            >GitHub repository</a
+          >.
         </p>
       </div>
     </div>
@@ -114,7 +142,7 @@
 import LineChart from './components/LineChart.vue';
 
 const dataUrl =
-  'https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e&limit=32000';
+  'https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3&limit=32000';
 
 const countiesMonitored = [
   'Alameda',
@@ -277,17 +305,17 @@ export default {
       // iterate through every item in the array
       records.forEach((originalRecord) => {
         // extract the county, date, confirmed cases, and deaths from the original data piece
-        const county = originalRecord['County Name'];
+        const { county } = originalRecord;
         // clean the format of the date
-        const date = originalRecord['Most Recent Date']
-          ? this.formatDate(originalRecord['Most Recent Date'])
-          : originalRecord['Most Recent Date'];
+        const date = originalRecord.date
+          ? this.formatDate(originalRecord.date)
+          : originalRecord.date;
 
         // if the date is valid
         if (date) {
           // extract the number of confirmed cases and deaths
-          const confirmed = originalRecord['Total Count Confirmed'];
-          const deaths = originalRecord['Total Count Deaths'];
+          const confirmed = originalRecord.totalcountconfirmed;
+          const deaths = originalRecord.totalcountdeaths;
 
           // ? process the confirmed and deaths count for the entire state and push them
           // build an array with all the dates

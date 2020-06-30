@@ -36,7 +36,9 @@ button at the top. Bay Area counties are defined here as:
 
 ## Datasource
 
-All data presented here is sourced from the [California Department of Public Health](https://data.chhs.ca.gov/dataset/california-covid-19-hospital-data-and-case-statistics"), which publicly exposes this data via a public API endpoint [here](https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=6cd8d424-dfaa-4bdd-9410-a3d656e1176e).
+_As of 6/29/20: the underlying datasource has changed. A fix has been implemented._
+
+All data presented here is sourced from the [CA.Gov Open Data Portal COVID-19 Cases Website](https://data.ca.gov/dataset/covid-19-cases/resource/926fd08f-cc91-4828-af38-bd45de97f8c3"), which publicly exposes this data via a public API endpoint [here](https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3).
 
 ## Limitations
 
