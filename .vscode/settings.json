@@ -15,5 +15,9 @@
     "sonoma",
     "stanislaus",
     "trendline"
+  ],
+  "cSpell.ignoreWords": [
+    "totalcountconfirmed",
+    "totalcountdeaths"
   ]
 }

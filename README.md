@@ -7,18 +7,32 @@ If you would like to see the site, please head over to: [https://covid-19-bay-ar
 ## About
 
 My wife is a health care worker in the Bay Area and had been looking
-for data specifically about Bay Area counties. She was only able to find
-data either for all of CA or separated by county; nothing that grouped
-the Bay Area counties together. That ask is where this app originated.
-The above graphs show data about COVID-19 in certain Bay Area counties
-(see below). The data is summed in the first graphs and calculated
-delta ("New") graphs showing the rate of change of the summative
-graphs are provided afterwards. On the delta graphs, a trendline has
-been drawn showing the seven day average values to provide a more
-consistent representation of the trend and counteracting the sporadic
-data availability on weekends. Optionally, you can also compare all
-Bay Area data with statewide data for all of California using the
-button at the top. Bay Area counties are defined here as:
+for COVID-19 data specifically about Bay Area counties. She was only
+able to find data either for all of CA or separated by county; nothing
+that grouped the Bay Area counties together. That ask is where this
+app originated.
+
+All the above graphs show data about COVID-19 in certain
+Bay Area counties (see below). The green graphs show the number of confirmed
+COVID-19 cases, while the purple graphs show the number of COVID-19
+deaths. The yellow graph shows hospitalizations with confirmed
+COVID-19: "This includes all inpatients (including those in ICUs and
+Medical/Surgical units), and does not include patients in affiliated
+clinics, outpatient departments, emergency departments and overflow
+locations awaiting an inpatient bed. As of April 21, 2020, COVID ED
+patients were removed from the Hospitalized COVID count and counted
+separately” (see [datasource definition](https://data.ca.gov/dataset/covid-19-hospital-data/resource/42d33765-20fd-44b8-a978-b083b7542225)). The red graph shows available
+ICU beds: "NICU, PICU, and adult" (see [datasource definition](https://data.ca.gov/dataset/covid-19-hospital-data/resource/42d33765-20fd-44b8-a978-b083b7542225)). On some of the graphs, a trendline
+has been drawn showing the seven day average values to provide a
+more consistent representation of the trend and counteracting the
+sporadic data availability on weekends. Optionally, you can also
+toggle data for all of California using the button at the top.
+
+_Note: the yellow and red graphs come from a different underlying
+datasource, so their dates may not exactly line up with the other
+four graphs._
+
+Bay Area counties are defined here as:
 
 - Alameda
 - Contra Costa

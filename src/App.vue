@@ -1,18 +1,23 @@
 <template>
   <div id="app">
     <div class="header-container">
-      <h1>Covid-19 Bay Area Data</h1>
+      <h1>COVID-19 Bay Area Data</h1>
       <button
         v-on:click="includeCA = includeCA ? false : true"
         alt="Toggle California Button"
         class="button"
+        v-if="dataLoaded && !apiError"
         :disabled="!dataLoaded"
       >
-        {{ !includeCA ? 'Compare to CA Data' : 'Bay Area Only' }}
+        {{ !includeCA ? 'Show CA Data' : 'Bay Area Only' }}
       </button>
     </div>
     <div class="refresh-data-container" v-if="!dataLoaded && apiError">
-      <span class="error">An error occurred, please refresh the data.</span>
+      <span class="error">
+        It looks like the Data.CA.Gov API is down, please refresh the data. If
+        the error persists, we will have to wait until the Data.CA.Gov service
+        comes back up.
+      </span>
       <br />
       <button
         v-on:click="loadData()"
@@ -54,24 +59,62 @@
           :include-california="includeCA"
         />
       </div>
+      <div class="chart-row" v-if="dataLoaded">
+        <LineChart
+          :chart-config="hospitalizedConfirmedConfig"
+          :include-california="includeCA"
+        />
+        <LineChart
+          :chart-config="availableIcuBedsConfig"
+          :include-california="includeCA"
+        />
+      </div>
       <div class="about-container" v-if="dataLoaded || apiError">
         <h2>About</h2>
         <p>
           My wife is a health care worker in the Bay Area and had been looking
-          for data specifically about Bay Area counties. She was only able to
-          find data either for all of CA or separated by county; nothing that
-          grouped the Bay Area counties together. That ask is where this app
-          originated. The above graphs show data about COVID-19 in certain Bay
-          Area counties (see below). The data is summed in the first graphs and
-          calculated delta ("New") graphs showing the rate of change of the
-          summative graphs are provided afterwards. On the delta graphs, a
-          trendline has been drawn showing the seven day average values to
-          provide a more consistent representation of the trend and
-          counteracting the sporadic data availability on weekends. Optionally,
-          you can also compare all Bay Area data with statewide data for all of
-          California using the button at the top. Bay Area counties are defined
-          here as:
+          for COVID-19 data specifically about Bay Area counties. She was only
+          able to find data either for all of CA or separated by county; nothing
+          that grouped the Bay Area counties together. That ask is where this
+          app originated.
         </p>
+        <p>
+          All the above graphs show data about COVID-19 in certain Bay Area
+          counties (see below). The green graphs show the number of confirmed
+          COVID-19 cases, while the purple graphs show the number of COVID-19
+          deaths. The yellow graph shows hospitalizations with confirmed
+          COVID-19: "This includes all inpatients (including those in ICUs and
+          Medical/Surgical units), and does not include patients in affiliated
+          clinics, outpatient departments, emergency departments and overflow
+          locations awaiting an inpatient bed. As of April 21, 2020, COVID ED
+          patients were removed from the Hospitalized COVID count and counted
+          separately” (see
+          <a
+            href="https://data.ca.gov/dataset/covid-19-hospital-data/resource/42d33765-20fd-44b8-a978-b083b7542225"
+            target="_blank"
+            title="Hospitals By County Data Definition"
+            >datasource definition</a
+          >). The red graph shows available ICU beds: "NICU, PICU, and adult"
+          (see
+          <a
+            href="https://data.ca.gov/dataset/covid-19-hospital-data/resource/42d33765-20fd-44b8-a978-b083b7542225"
+            target="_blank"
+            title="Hospitals By County Data Definition"
+            >datasource definition</a
+          >). On some of the graphs, a trendline has been drawn showing the
+          seven day average values to provide a more consistent representation
+          of the trend and counteracting the sporadic data availability on
+          weekends. Optionally, you can also toggle data for all of California
+          using the button at the top.
+        </p>
+        <p>
+          <i
+            >Note: the yellow and red graphs come from a different underlying
+            datasource, so their dates may not exactly line up with the other
+            four graphs.</i
+          >
+        </p>
+        <p>Bay Area counties are defined here as:</p>
         <ul class="counties-list">
           <li>Alameda</li>
           <li>Contra Costa</li>
@@ -89,28 +132,58 @@
         </ul>
         <h2>Datasource</h2>
         <p>
-          <i
-            >As of 6/29/20: the underlying datasource has changed. A fix has
-            been implemented.</i
-          >
+          <i>
+            As of 6/29/20: the underlying datasource has changed. A fix has been
+            implemented.
+          </i>
         </p>
         <p>
           All data presented here is sourced from the
           <a
-            title="CA.Gov Open Data Portal COVID-19 Cases Website"
+            title="CA.Gov Open Data Portal"
             target="_blank"
-            href="https://data.ca.gov/dataset/covid-19-cases/resource/926fd08f-cc91-4828-af38-bd45de97f8c3"
+            href="https://data.ca.gov/"
             >CA.Gov Open Data Portal</a
-          >, which publicly exposes this data via a public API endpoint
-          <a
-            title="CA.Gov Open Data Portal Covid-19 Data API endpoint"
-            target="_blank"
-            href="https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3"
-            >here</a
-          >.
+          >, which publicly exposes this data via two public API endpoints:
         </p>
+        <ul class="api-endpoint-list">
+          <li>
+            <a
+              title="CA.Gov Open Data Portal COVID-19 Cases"
+              target="_blank"
+              href="https://data.ca.gov/dataset/covid-19-cases/resource/926fd08f-cc91-4828-af38-bd45de97f8c3"
+              >COVID-19 Cases</a
+            >
+            -
+            <a
+              title="CA.Gov Open Data Portal Covid-19 Data API endpoint"
+              target="_blank"
+              href="https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3"
+              >API endpoint</a
+            >
+          </li>
+          <li>
+            <a
+              title="CA.Gov Open Data Portal COVID-19 Hospital Data"
+              target="_blank"
+              href="https://data.ca.gov/dataset/covid-19-cases/resource/42d33765-20fd-44b8-a978-b083b7542225"
+              >COVID-19 Hospital Data</a
+            >
+            -
+            <a
+              title="CA.Gov Open Data Portal COVID-19 Hospital Data API endpoint"
+              target="_blank"
+              href="https://data.ca.gov/api/3/action/datastore_search?resource_id=42d33765-20fd-44b8-a978-b083b7542225"
+              >API endpoint</a
+            >
+          </li>
+        </ul>
         <h2>Limitations</h2>
         <ul class="limitations-list">
+          <li>
+            the biggest limitation is the uptime of the underlying Data.Ca.Gov
+            API - if their service goes down, the app will go down
+          </li>
           <li>
             the current API limits calls to 32,000 results (approximately 20
             months of data)
@@ -141,39 +214,22 @@
 <script>
 import LineChart from './components/LineChart.vue';
 
-const dataUrl =
-  'https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3&limit=32000';
+import {
+  baseApiUrl,
+  covid19CasesResourceId,
+  hospitalDataResourceId,
+} from './constants/api.constants';
 
-const countiesMonitored = [
-  'Alameda',
-  'Marin',
-  'Contra Costa',
-  'San Francisco',
-  'San Mateo',
-  'Santa Clara',
-  'San Jose',
-  'Santa Cruz',
-  'Sonoma',
-  'Napa',
-  'Solano',
-  'Stanislaus',
-  'San Joaquin',
-];
+import {
+  confirmedCasesConfig,
+  confirmedCasesDeltaConfig,
+  deathsConfig,
+  deathsDeltaConfig,
+  hospitalizedConfirmedConfig,
+  availableIcuBedsConfig,
+} from './constants/chart-configs.constants';
 
-const confirmedBayAreaChartColor = 'rgba(60, 186, 159, .5)';
-const deathsBayAreaChartColor = 'rgba(142, 94, 162, .5)';
-const californiaChartColor = 'rgba(62,149,205, 0.1)';
-const sevenDayAvgChartColor = 'rgba(62,149,205, 1)';
-const chartOptionsDefault = {
-  responsive: true,
-  maintainAspectRatio: false,
-};
-const sevenDayAvgChartOptionsDefault = {
-  fill: false,
-  borderWidth: 2,
-  pointRadius: 0,
-  borderColor: sevenDayAvgChartColor,
-};
+import processRecords from './functions/process-records';
 
 export default {
   name: 'App',
@@ -182,40 +238,12 @@ export default {
   },
   data() {
     return {
-      confirmedCasesConfig: {
-        title: 'Confirmed Cases',
-        color: californiaChartColor,
-        colorBayArea: confirmedBayAreaChartColor,
-        options: chartOptionsDefault,
-        labels: [],
-        data: [],
-      },
-      confirmedCasesDeltaConfig: {
-        title: '# of New Confirmed Cases',
-        color: californiaChartColor,
-        colorBayArea: confirmedBayAreaChartColor,
-        options: chartOptionsDefault,
-        sevenDaysAvgOptions: sevenDayAvgChartOptionsDefault,
-        labels: [],
-        data: [],
-      },
-      deathsConfig: {
-        title: 'Deaths',
-        color: californiaChartColor,
-        colorBayArea: deathsBayAreaChartColor,
-        options: chartOptionsDefault,
-        labels: [],
-        data: [],
-      },
-      deathsDeltaConfig: {
-        title: '# of New Deaths',
-        color: californiaChartColor,
-        colorBayArea: deathsBayAreaChartColor,
-        options: chartOptionsDefault,
-        sevenDaysAvgOptions: sevenDayAvgChartOptionsDefault,
-        labels: [],
-        data: [],
-      },
+      confirmedCasesConfig,
+      confirmedCasesDeltaConfig,
+      deathsConfig,
+      deathsDeltaConfig,
+      hospitalizedConfirmedConfig,
+      availableIcuBedsConfig,
       dataLoaded: false,
       apiError: false,
       includeCA: false,
@@ -224,7 +252,7 @@ export default {
   },
   // process the data returned by the api
   methods: {
-    loadData() {
+    async loadData() {
       // reset the apiError flag
       this.apiError = false;
       // indicate data is loading
@@ -237,43 +265,22 @@ export default {
         this.dataLoadingIsDelayed = true;
       }, 5000);
 
-      // make the api call
-      fetch(dataUrl, { cache: 'no-store' })
-        .then((response) => response.json())
-        .then((data) => {
-          // extract the records
-          const { records } = data.result;
-          // process the data returned
-          const processedData = this.processRecords(records);
+      // declare constants for both the covidRecords and the hospitalData
+      let covidRecords;
+      let hospitalData;
 
-          this.confirmedCasesConfig.labels = processedData.dates;
-          this.confirmedCasesConfig.data = processedData.confirmed;
-          this.confirmedCasesConfig.dataBayArea =
-            processedData.confirmedBayArea;
-          this.confirmedCasesDeltaConfig.labels = processedData.dates;
-          this.confirmedCasesDeltaConfig.data = processedData.confirmedDelta;
-          this.confirmedCasesDeltaConfig.sevenDayAvg =
-            processedData.confirmedDeltaSevenDayAvg;
-          this.confirmedCasesDeltaConfig.dataBayArea =
-            processedData.confirmedDeltaBayArea;
-          this.confirmedCasesDeltaConfig.sevenDayAvgBayArea =
-            processedData.confirmedDeltaSevenDayAvgBayArea;
-          this.deathsConfig.labels = processedData.dates;
-          this.deathsConfig.data = processedData.deaths;
-          this.deathsConfig.dataBayArea = processedData.deathsBayArea;
-          this.deathsDeltaConfig.labels = processedData.dates;
-          this.deathsDeltaConfig.data = processedData.deathsDelta;
-          this.deathsDeltaConfig.sevenDayAvg =
-            processedData.deathsDeltaSevenDayAvg;
-          this.deathsDeltaConfig.dataBayArea = processedData.deathsDeltaBayArea;
-          this.deathsDeltaConfig.sevenDayAvgBayArea =
-            processedData.deathsDeltaSevenDayAvgBayArea;
-          // after all the data has loaded, change the flag
-          this.dataLoaded = true;
-          // in the event the delayedTimeout has not been triggered yet, stop it
-          clearTimeout(delayedTimeout);
-          // since the loading has completed, it is no longer delayed as well
-          this.dataLoadingIsDelayed = false;
+      // chain the api calls together to happen async but await all of them
+      await Promise.all([
+        fetch(`${baseApiUrl}${covid19CasesResourceId}`, { cache: 'no-store' }),
+        fetch(`${baseApiUrl}${hospitalDataResourceId}`, { cache: 'no-store' }),
+      ])
+        .then(async ([covid19Response, hospitalDataResponse]) => {
+          // pass the responses on to the local variables
+          const covidRecordsJson = await covid19Response.json();
+          covidRecords = covidRecordsJson.result.records;
+          const hospitalDataJson = await hospitalDataResponse.json();
+          hospitalData = hospitalDataJson.result.records;
+          return [covidRecords, hospitalData];
         })
         .catch((error) => {
           console.error(error);
@@ -284,223 +291,63 @@ export default {
           // since the loading has completed, it is no longer delayed as well
           this.dataLoadingIsDelayed = false;
         });
-    },
-    processRecords(records) {
-      // create areas for California-wide data
-      let datesArray = [];
-      let sumConfirmedArray = [];
-      let deltaConfirmedArray = [];
-      let sevenDayAvgDeltaConfirmedArray = [];
-      let sumDeathsArray = [];
-      let deltaDeathsArray = [];
-      let sevenDayAvgDeltaDeathsArray = [];
-      // create arrays for just the Bay Area data
-      let sumConfirmedBayAreaArray = [];
-      let deltaConfirmedBayAreaArray = [];
-      let sevenDayAvgDeltaConfirmedBayAreaArray = [];
-      let sumDeathsBayAreaArray = [];
-      let deltaDeathsBayAreaArray = [];
-      let sevenDayAvgDeltaDeathsBayAreaArray = [];
 
-      // iterate through every item in the array
-      records.forEach((originalRecord) => {
-        // extract the county, date, confirmed cases, and deaths from the original data piece
-        const { county } = originalRecord;
-        // clean the format of the date
-        const date = originalRecord.date
-          ? this.formatDate(originalRecord.date)
-          : originalRecord.date;
+      // process both sets of data returned
+      const processedData = processRecords(covidRecords, hospitalData);
 
-        // if the date is valid
-        if (date) {
-          // extract the number of confirmed cases and deaths
-          const confirmed = originalRecord.totalcountconfirmed;
-          const deaths = originalRecord.totalcountdeaths;
+      // extract the covid data from the processed data
+      this.confirmedCasesConfig.labels = processedData.covidData.dates;
+      this.confirmedCasesConfig.data = processedData.covidData.confirmed;
+      this.confirmedCasesConfig.dataBayArea =
+        processedData.covidData.confirmedBayArea;
+      this.confirmedCasesDeltaConfig.labels = processedData.covidData.dates;
+      this.confirmedCasesDeltaConfig.data =
+        processedData.covidData.confirmedDelta;
+      this.confirmedCasesDeltaConfig.sevenDayAvg =
+        processedData.covidData.confirmedDeltaSevenDayAvg;
+      this.confirmedCasesDeltaConfig.dataBayArea =
+        processedData.covidData.confirmedDeltaBayArea;
+      this.confirmedCasesDeltaConfig.sevenDayAvgBayArea =
+        processedData.covidData.confirmedDeltaSevenDayAvgBayArea;
+      this.deathsConfig.labels = processedData.covidData.dates;
+      this.deathsConfig.data = processedData.covidData.deaths;
+      this.deathsConfig.dataBayArea = processedData.covidData.deathsBayArea;
+      this.deathsDeltaConfig.labels = processedData.covidData.dates;
+      this.deathsDeltaConfig.data = processedData.covidData.deathsDelta;
+      this.deathsDeltaConfig.sevenDayAvg =
+        processedData.covidData.deathsDeltaSevenDayAvg;
+      this.deathsDeltaConfig.dataBayArea =
+        processedData.covidData.deathsDeltaBayArea;
+      this.deathsDeltaConfig.sevenDayAvgBayArea =
+        processedData.covidData.deathsDeltaSevenDayAvgBayArea;
 
-          // ? process the confirmed and deaths count for the entire state and push them
-          // build an array with all the dates
-          // check if the date does not exist in the dates array
-          // if the index is -1, that means this date's value does not exist
-          if (datesArray.indexOf(date) === -1) {
-            // insert the date
-            datesArray.push(date);
-          }
-          // call the local function to add the data to the array intelligently
-          // sumConfirmedArray[dateIndex] += confirmed;
-          // sumDeathsArray[dateIndex] += deaths;
-          sumConfirmedArray = this.addDataToArray(
-            sumConfirmedArray,
-            date,
-            'confirmed',
-            confirmed,
-          );
-          sumDeathsArray = this.addDataToArray(
-            sumDeathsArray,
-            date,
-            'deaths',
-            deaths,
-          );
+      // extract the hospital data from the processed data
+      this.hospitalizedConfirmedConfig.labels =
+        processedData.hospitalData.dates;
+      this.hospitalizedConfirmedConfig.data =
+        processedData.hospitalData.hospitalizedConfirmed;
+      this.hospitalizedConfirmedConfig.sevenDayAvg =
+        processedData.hospitalData.hospitalizedConfirmedSevenDayAvg;
+      this.hospitalizedConfirmedConfig.dataBayArea =
+        processedData.hospitalData.hospitalizedConfirmedBayArea;
+      this.hospitalizedConfirmedConfig.sevenDayAvgBayArea =
+        processedData.hospitalData.hospitalizedConfirmedSevenDayAvgBayArea;
+      this.availableIcuBedsConfig.labels = processedData.hospitalData.dates;
+      this.availableIcuBedsConfig.data =
+        processedData.hospitalData.availableIcuBeds;
+      this.availableIcuBedsConfig.sevenDayAvg =
+        processedData.hospitalData.availableIcuBedsSevenDayAvg;
+      this.availableIcuBedsConfig.dataBayArea =
+        processedData.hospitalData.availableIcuBedsBayArea;
+      this.availableIcuBedsConfig.sevenDayAvgBayArea =
+        processedData.hospitalData.availableIcuBedsSevenDayAvgBayArea;
 
-          // ? now, check to see if the county is one of the Bay Area counties we are tracking
-          // if is, do the same logic as above, but for the Bay Area arrays
-          if (countiesMonitored.includes(county)) {
-            // call the local function to add the data to the array intelligently
-            sumConfirmedBayAreaArray = this.addDataToArray(
-              sumConfirmedBayAreaArray,
-              date,
-              'confirmed',
-              confirmed,
-            );
-            sumDeathsBayAreaArray = this.addDataToArray(
-              sumDeathsBayAreaArray,
-              date,
-              'deaths',
-              deaths,
-            );
-          }
-        }
-      });
-
-      // before continuing with the processing, we need to sort and trim the arrays we have built
-      // start by sorting the date array
-      datesArray = datesArray.sort((a, b) => new Date(a) - new Date(b));
-
-      // sort the other 4 arrays using the local method
-      sumConfirmedArray = this.sortAndTrimArray(sumConfirmedArray, 'confirmed');
-      sumDeathsArray = this.sortAndTrimArray(sumDeathsArray, 'deaths');
-      sumConfirmedBayAreaArray = this.sortAndTrimArray(
-        sumConfirmedBayAreaArray,
-        'confirmed',
-      );
-      sumDeathsBayAreaArray = this.sortAndTrimArray(
-        sumDeathsBayAreaArray,
-        'deaths',
-      );
-
-      // ? Calculate the delta arrays for the entire state of CA
-      deltaConfirmedArray = this.calculateDeltaArray(sumConfirmedArray);
-      deltaDeathsArray = this.calculateDeltaArray(sumDeathsArray);
-
-      // ? Calculate the seven day average arrays for the entire state of CA
-      sevenDayAvgDeltaConfirmedArray = this.calculateSevenDayAvgArray(
-        deltaConfirmedArray,
-      );
-      sevenDayAvgDeltaDeathsArray = this.calculateSevenDayAvgArray(
-        deltaDeathsArray,
-      );
-
-      // ? Do the same calculation as above for the deltas but just for the Bay Area counties
-      deltaConfirmedBayAreaArray = this.calculateDeltaArray(
-        sumConfirmedBayAreaArray,
-      );
-      deltaDeathsBayAreaArray = this.calculateDeltaArray(sumDeathsBayAreaArray);
-
-      // ? Calculate the seven day average arrays but just for the Bay Area counties
-      sevenDayAvgDeltaConfirmedBayAreaArray = this.calculateSevenDayAvgArray(
-        deltaConfirmedBayAreaArray,
-      );
-      sevenDayAvgDeltaDeathsBayAreaArray = this.calculateSevenDayAvgArray(
-        deltaDeathsBayAreaArray,
-      );
-
-      return {
-        dates: datesArray,
-        confirmed: sumConfirmedArray,
-        confirmedDelta: deltaConfirmedArray,
-        confirmedDeltaSevenDayAvg: sevenDayAvgDeltaConfirmedArray,
-        deaths: sumDeathsArray,
-        deathsDelta: deltaDeathsArray,
-        deathsDeltaSevenDayAvg: sevenDayAvgDeltaDeathsArray,
-        confirmedBayArea: sumConfirmedBayAreaArray,
-        confirmedDeltaBayArea: deltaConfirmedBayAreaArray,
-        confirmedDeltaSevenDayAvgBayArea: sevenDayAvgDeltaConfirmedBayAreaArray,
-        deathsBayArea: sumDeathsBayAreaArray,
-        deathsDeltaBayArea: deltaDeathsBayAreaArray,
-        deathsDeltaSevenDayAvgBayArea: sevenDayAvgDeltaDeathsBayAreaArray,
-      };
-    },
-    formatDate(date) {
-      let formattedDate = date;
-      // remove the time
-      formattedDate = formattedDate.replace('T00:00:00', '');
-      // change the '-'s to '/'s
-      formattedDate = formattedDate.replace(/-/g, '/');
-      // parse it into a date and then back into a string with a 2 digit year
-      formattedDate = new Date(formattedDate).toLocaleDateString('en-US', {
-        year: '2-digit',
-        month: '2-digit',
-        day: '2-digit',
-      });
-      // if the first character is 0, remove it
-      if (formattedDate.charAt(0) === '0') {
-        formattedDate = formattedDate.substring(1);
-      }
-      // remove any 0 after a '/' - this should only be possible with the day
-      formattedDate = formattedDate.replace('/0', '/');
-      // return the formatted date
-      return formattedDate;
-    },
-    addDataToArray(originalArray, date, property, data) {
-      // create a temporary array
-      const tempArray = originalArray;
-
-      // find index of item to be replaced
-      const targetIndex = originalArray.findIndex((obj) => obj.date === date);
-
-      // if the date does not exist in the array
-      if (targetIndex === -1) {
-        // build an item to add to the array
-        const tempItem = { date };
-        tempItem[property] = data;
-        // add the item to the array
-        tempArray.push(tempItem);
-      } else {
-        // else, update the value by adding the data to it
-        tempArray[targetIndex][property] += data;
-      }
-
-      // return the temporary array
-      return tempArray;
-    },
-    sortAndTrimArray(originalArray, property) {
-      const sortedAndTrimmedArray = [];
-      // sort the original array by date, converting the date strings to dates
-      const sortedArray = originalArray.sort(
-        (a, b) => new Date(a.date) - new Date(b.date),
-      );
-      // loop through the sortedArray
-      sortedArray.forEach((obj) => sortedAndTrimmedArray.push(obj[property]));
-
-      // return the sorted and trimmed array
-      return sortedAndTrimmedArray;
-    },
-    calculateDeltaArray(originalArray) {
-      // start with a single 0 in the array
-      const returnArray = [0];
-      // iterate through the entire sum confirmed array to create the delta array
-      // begin at index 1, since the delta can only be calculated when there is a previous element
-      for (let sumIndex = 1; sumIndex < originalArray.length; sumIndex++) {
-        returnArray.push(originalArray[sumIndex] - originalArray[sumIndex - 1]);
-      }
-      return returnArray;
-    },
-    calculateSevenDayAvgArray(originalArray) {
-      // start with a six 0s in the array
-      const returnArray = [null, null, null, null, null, null];
-      // iterate through the entire sum confirmed array to create the delta array
-      // begin at index 6 - the seven day average can only be calculated with six previous elements
-      for (let sumIndex = 6; sumIndex < originalArray.length; sumIndex++) {
-        // calculate the 7 element average
-        let average = 0;
-        // add the 7 values together
-        for (let avgIndex = sumIndex; avgIndex >= sumIndex - 6; avgIndex--) {
-          average += originalArray[avgIndex];
-        }
-        // divide the result by 7
-        average /= 7;
-        returnArray.push(average);
-      }
-      return returnArray;
+      // after all the data has loaded, change the flag
+      this.dataLoaded = true;
+      // in the event the delayedTimeout has not been triggered yet, stop it
+      clearTimeout(delayedTimeout);
+      // since the loading has completed, it is no longer delayed as well
+      this.dataLoadingIsDelayed = false;
     },
   },
   mounted() {
