@@ -166,7 +166,7 @@
             <a
               title="CA.Gov Open Data Portal COVID-19 Hospital Data"
               target="_blank"
-              href="https://data.ca.gov/dataset/covid-19-cases/resource/42d33765-20fd-44b8-a978-b083b7542225"
+              href="https://data.ca.gov/dataset/covid-19-hospital-data/resource/42d33765-20fd-44b8-a978-b083b7542225"
               >COVID-19 Hospital Data</a
             >
             -
