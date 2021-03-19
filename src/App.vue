@@ -1,4 +1,5 @@
 <template>
+  <!-- eslint-disable max-len -->
   <div id="app">
     <div class="header-container">
       <h1>COVID-19 Bay Area Data</h1>
@@ -133,7 +134,7 @@
         <h2>Datasource</h2>
         <p>
           <i>
-            As of 6/29/20: the underlying datasource has changed. A fix has been
+            As of 3/19/21: the underlying datasource has changed. A fix has been
             implemented.
           </i>
         </p>
@@ -149,16 +150,16 @@
         <ul class="api-endpoint-list">
           <li>
             <a
-              title="CA.Gov Open Data Portal COVID-19 Cases"
+              title="CA.Gov Open Data Portal COVID-19 Time-Series Metrics by County and State"
               target="_blank"
-              href="https://data.ca.gov/dataset/covid-19-cases/resource/926fd08f-cc91-4828-af38-bd45de97f8c3"
-              >COVID-19 Cases</a
+              href="https://data.chhs.ca.gov/dataset/covid-19-time-series-metrics-by-county-and-state"
+              >COVID-19 Time-Series Metrics by County and State</a
             >
             -
             <a
               title="CA.Gov Open Data Portal Covid-19 Data API endpoint"
               target="_blank"
-              href="https://data.ca.gov/api/3/action/datastore_search?resource_id=926fd08f-cc91-4828-af38-bd45de97f8c3"
+              href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=046cdd2b-31e5-4d34-9ed3-b48cdbc4be7a"
               >API endpoint</a
             >
           </li>
@@ -166,14 +167,14 @@
             <a
               title="CA.Gov Open Data Portal COVID-19 Hospital Data"
               target="_blank"
-              href="https://data.ca.gov/dataset/covid-19-hospital-data/resource/42d33765-20fd-44b8-a978-b083b7542225"
+              href="https://data.chhs.ca.gov/dataset/covid-19-hospital-data"
               >COVID-19 Hospital Data</a
             >
             -
             <a
               title="CA.Gov Open Data Portal COVID-19 Hospital Data API endpoint"
               target="_blank"
-              href="https://data.ca.gov/api/3/action/datastore_search?resource_id=42d33765-20fd-44b8-a978-b083b7542225"
+              href="https://data.chhs.ca.gov/api/3/action/datastore_search?resource_id=47af979d-8685-4981-bced-96a6b79d3ed5"
               >API endpoint</a
             >
           </li>

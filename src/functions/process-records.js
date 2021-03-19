@@ -26,55 +26,61 @@ const processCovidRecords = (covidRecords) => {
 
   // iterate through every covid record
   covidRecords.forEach((originalRecord) => {
-    // extract the county, date, confirmed cases, and deaths from the original data piece
-    const { county } = originalRecord;
-    // clean the format of the date
-    const date = originalRecord.date
-      ? formatDate(originalRecord.date)
-      : originalRecord.date;
+    // check if the record is for a county for for the entire state
+    if (originalRecord.area_type === 'County') {
+      // if we are looking at a County record, continue processing
+      // extract the county, date, confirmed cases, and deaths from the original data piece
+      const county = originalRecord.area;
+      // clean the format of the date
+      const date = originalRecord.date
+        ? formatDate(originalRecord.date)
+        : originalRecord.date;
 
-    // if the date is valid
-    if (date) {
-      // extract the number of confirmed cases and deaths
-      const confirmed = originalRecord.totalcountconfirmed;
-      const deaths = originalRecord.totalcountdeaths;
+      // if the date is valid
+      if (date) {
+        // extract the number of confirmed cases and deaths
+        const confirmed = parseInt(originalRecord.cumulative_cases, 10);
+        const deaths = parseInt(originalRecord.cumulative_deaths, 10);
 
-      // ? process the confirmed and deaths count for the entire state and push them
-      // build an array with all the dates
-      // check if the date does not exist in the dates array
-      // if the index is -1, that means this date's value does not exist
-      if (covidDatesArray.indexOf(date) === -1) {
-        // insert the date
-        covidDatesArray.push(date);
-      }
-      // call the local function to add the data to the array intelligently
-      // sumConfirmedArray[dateIndex] += confirmed;
-      // sumDeathsArray[dateIndex] += deaths;
-      sumConfirmedArray = addDataToArray(
-        sumConfirmedArray,
-        date,
-        'confirmed',
-        confirmed,
-      );
-      sumDeathsArray = addDataToArray(sumDeathsArray, date, 'deaths', deaths);
-
-      // ? now, check to see if the county is one of the Bay Area counties we are tracking
-      // if is, do the same logic as above, but for the Bay Area arrays
-      if (countiesMonitored.includes(county)) {
+        // ? process the confirmed and deaths count for the entire state and push them
+        // build an array with all the dates
+        // check if the date does not exist in the dates array
+        // if the index is -1, that means this date's value does not exist
+        if (covidDatesArray.indexOf(date) === -1) {
+          // insert the date
+          covidDatesArray.push(date);
+        }
         // call the local function to add the data to the array intelligently
-        sumConfirmedBayAreaArray = addDataToArray(
-          sumConfirmedBayAreaArray,
+        // sumConfirmedArray[dateIndex] += confirmed;
+        // sumDeathsArray[dateIndex] += deaths;
+        sumConfirmedArray = addDataToArray(
+          sumConfirmedArray,
           date,
           'confirmed',
           confirmed,
         );
-        sumDeathsBayAreaArray = addDataToArray(
-          sumDeathsBayAreaArray,
-          date,
-          'deaths',
-          deaths,
-        );
+        sumDeathsArray = addDataToArray(sumDeathsArray, date, 'deaths', deaths);
+
+        // ? now, check to see if the county is one of the Bay Area counties we are tracking
+        // if is, do the same logic as above, but for the Bay Area arrays
+        if (countiesMonitored.includes(county)) {
+          // call the local function to add the data to the array intelligently
+          sumConfirmedBayAreaArray = addDataToArray(
+            sumConfirmedBayAreaArray,
+            date,
+            'confirmed',
+            confirmed,
+          );
+          sumDeathsBayAreaArray = addDataToArray(
+            sumDeathsBayAreaArray,
+            date,
+            'deaths',
+            deaths,
+          );
+        }
       }
+    } else {
+      // else, we are looking at a State record, so do nothing
     }
   });
 
@@ -152,8 +158,8 @@ const processHospitalRecords = (hospitalDataRecords) => {
     if (date) {
       // extract the number of confirmed hospitalizations and available icu beds
       const hospitalizedConfirmed =
-        originalRecord.hospitalized_covid_confirmed_patients;
-      const availableIcuBeds = originalRecord.icu_available_beds;
+        parseInt(originalRecord.hospitalized_covid_patients, 10);
+      const availableIcuBeds = parseInt(originalRecord.icu_available_beds, 10);
 
       // ? process the hospitalized confirmed and available icu beds for the entire state and push them
       // build an array with all the dates
