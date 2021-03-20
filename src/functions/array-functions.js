@@ -2,21 +2,24 @@ const addDataToArray = (originalArray, date, property, data) => {
   // create a temporary array
   const tempArray = originalArray;
 
-  // find index of item to be replaced
-  const targetIndex = originalArray.findIndex((obj) => obj.date === date);
+  // ensure that there was data passed
+  // if there is no data, then just pass the original array back
+  if (data) {
+    // find index of item to be replaced
+    const targetIndex = originalArray.findIndex((obj) => obj.date === date);
 
-  // if the date does not exist in the array
-  if (targetIndex === -1) {
-    // build an item to add to the array
-    const tempItem = { date };
-    tempItem[property] = data;
-    // add the item to the array
-    tempArray.push(tempItem);
-  } else {
-    // else, update the value by adding the data to it
-    tempArray[targetIndex][property] += data;
+    // if the date does not exist in the array
+    if (targetIndex === -1) {
+      // build an item to add to the array
+      const tempItem = { date };
+      tempItem[property] = data;
+      // add the item to the array
+      tempArray.push(tempItem);
+    } else {
+      // else, update the value by adding the data to it
+      tempArray[targetIndex][property] += data;
+    }
   }
-
   // return the temporary array
   return tempArray;
 };
