@@ -13,7 +13,17 @@
         {{ !includeCA ? 'Show CA Data' : 'Bay Area Only' }}
       </button>
     </div>
-    <div class="refresh-data-container" v-if="!dataLoaded && apiError">
+    <div class="refresh-data-container">
+      <span class="error">
+        Unfortunately, the CHHS Open Data Portal is no longer publicly exposing the data this app needs to run, so we can no longer
+        share the visualizations we would like to. We will continue monitoring the exposed API endpoints and bring this app back
+        if and when it is possible.
+      </span><br /><br />
+      <span>
+        Thank you for your continued support.
+      </span>
+    </div>
+    <div class="refresh-data-container" v-if="!dataLoaded && apiError" style="display: none;">
       <span class="error">
         It looks like the Data.CA.Gov API is down, please refresh the data. If
         the error persists, we will have to wait until the Data.CA.Gov service
@@ -33,13 +43,14 @@
       class="loading-spinner"
       src="./assets/loading-spinner.gif"
       v-if="!dataLoaded && !apiError"
+      style="display:none;"
     />
-    <h3 v-if="dataLoadingIsDelayed">
+    <h3 v-if="dataLoadingIsDelayed" style="display:none;">
       The data is taking a little while to load. This could be because the
       datasource has fallen asleep. Standby...
     </h3>
 
-    <div class="body-container">
+    <div class="body-container" style="display:none;">
       <div class="chart-row" v-if="dataLoaded">
         <LineChart
           :chart-config="confirmedCasesConfig"
@@ -417,9 +428,13 @@ export default {
   }
 
   > .refresh-data-container {
+
     font-weight: bold;
-    color: red;
     margin-top: 20px;
+
+    > .error {
+      color: red;
+    }
   }
 
   > .body-container {
